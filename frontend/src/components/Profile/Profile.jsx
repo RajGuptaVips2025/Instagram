@@ -2,15 +2,15 @@ import { useState, useEffect,useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { setFollower, setFollowing } from '../features/userDetail/userDetailsSlice';
-import Sidebar from './Sidebar';
-import CreatePost from './CreatePost';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { setFollower, setFollowing } from '../../features/userDetail/userDetailsSlice';
+import Sidebar from '../Home/Sidebar';
+import CreatePost from '../Profile/CreatePost';
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { Button } from "../ui/button"
+import { Card, CardContent } from "../ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { BookmarkIcon, Clapperboard, GridIcon, MessageCircle, SettingsIcon, UserIcon } from "lucide-react"
-import { FaHeart } from 'react-icons/fa';
+import { FaHeart } from 'react-icons/fa';   
 import { InstagramProfileSkeletonComponent } from './instagram-profile-skeleton';
 import { IoChatbubbleSharp } from 'react-icons/io5';
 import PostOpener from './PostOpener';

@@ -1,8 +1,8 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { setSuggestedUser } from '../features/userDetail/userDetailsSlice';
-import { ScrollArea } from './ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { setSuggestedUser } from '../../features/userDetail/userDetailsSlice';
+import { ScrollArea } from '../ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { SearchDialogWithCheckboxesComponent } from './search-dialog-with-checkboxes';
 
 function MessagesMember({ socketRef }) {

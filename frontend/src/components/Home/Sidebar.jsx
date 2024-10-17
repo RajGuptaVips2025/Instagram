@@ -5,9 +5,9 @@ import { CiSquarePlus } from "react-icons/ci";
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';;
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import { Compass, Heart, Home, Menu, Search } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 function Sidebar() {
     const userDetails = useSelector((state) => state.counter.userDetails);

@@ -11,47 +11,51 @@ const groupChatSchema = new mongoose.Schema({
   },
   members: [
     {
-      userId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: true 
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
       },
-      joinedAt: { 
-        type: Date, 
-        default: Date.now 
+      joinedAt: {
+        type: Date,
+        default: Date.now
       },
       role: {
-        type: String, 
-        enum: ['admin', 'member'], 
+        type: String,
+        enum: ['admin', 'member'],
         default: 'member'
       }
     }
   ],
   messages: [
     {
-      senderId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: true 
+      senderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
       },
       message: {
         type: String,
+        // required: true
       },
       messageType: {
         type: String,
         enum: ['text', 'image', 'video'],  // For future support of multimedia messages
         required: true,
       },
-      timestamp: { 
-        type: Date, 
-        default: Date.now 
+      mediaUrl: {
+        type: String,
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now
       }
     }
   ],
-  createdBy: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
   createdAt: {
     type: Date,

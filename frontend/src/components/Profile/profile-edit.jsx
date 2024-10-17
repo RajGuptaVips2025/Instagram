@@ -11,7 +11,7 @@ import { settingsLinks } from "./settingsLinks"
 import { useNavigate, useParams } from "react-router-dom"
 import { useState } from "react"
 import axios from "axios"
-import Sidebar from "./Sidebar"
+import Sidebar from "../Home/Sidebar"
 import { addUser } from "@/features/userDetail/userDetailsSlice"
 import { useDispatch } from "react-redux"
 

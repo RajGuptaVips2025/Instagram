@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ScrollArea } from './ui/scroll-area'
+import { ScrollArea } from '../ui/scroll-area'
 import axios from 'axios'
 import { useDispatch, useSelector } from 'react-redux'
 import { setFollowingUsers } from '@/features/userDetail/userDetailsSlice'

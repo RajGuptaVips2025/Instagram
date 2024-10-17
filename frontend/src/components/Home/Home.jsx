@@ -3,7 +3,8 @@ import Sidebar from './Sidebar';
 import SuggestedUsers from './SuggestedUsers';
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
-import { setSavedPosts, setFollowing, setFollower, setSelectedPost } from '../features/userDetail/userDetailsSlice'; // Adjust paths as necessary
+// import { setSavedPosts, setFollowing, setFollower, setSelectedPost } from '../features/userDetail/userDetailsSlice'; // Adjust paths as necessary
+import { setSavedPosts, setFollowing, setFollower, setSelectedPost } from '@/features/userDetail/userDetailsSlice';
 import PostComment from './PostComment';
 import Post from './Post';
 import Stories from './Stories';

@@ -13,7 +13,7 @@ import { CiSquarePlus } from "react-icons/ci"
 import { RxHamburgerMenu } from "react-icons/rx"
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import { setFollowingUsers, setMessages, setSuggestedUser } from '../features/userDetail/userDetailsSlice';
+import { setFollowingUsers, setMessages, setSuggestedUser } from '../../features/userDetail/userDetailsSlice';
 
 export function ChatComponent({ socketRef }) {
   const links = [
@@ -42,7 +42,6 @@ export function ChatComponent({ socketRef }) {
     } catch (error) {
       console.error('Error fetching following users:', error);
       if (error.response.statusText === "Unauthorized") navigate('/login')
-
     }
   };
 
@@ -99,13 +98,14 @@ export function ChatComponent({ socketRef }) {
         console.log('User details not available yet.');
         return;  // Exit the function early if userDetails is not set
       }
-
+      console.log(suggestedUser._id);
       if (suggestedUser && Object.keys(suggestedUser).length > 0) {
         const response = await axios.get(
           suggestedUser && 'groupName' in suggestedUser
             ? `/api/conversations/group/messages/${suggestedUser?._id}`
             : `/api/conversations/all/messages/${suggestedUser?._id}?senderId=${senderId}`
         );
+        console.log(response.data.messages);
 
         if (response.data.success) {
           dispatch(setMessages(response.data.messages));

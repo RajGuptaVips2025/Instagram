@@ -5,13 +5,14 @@ import { FiSend } from "react-icons/fi";
 import { GoBookmark } from "react-icons/go";
 import { GoBookmarkFill } from "react-icons/go";
 import { useDispatch, useSelector } from 'react-redux';
-import { setSavedPosts, setSelectedPost } from '../features/userDetail/userDetailsSlice';
+// import { setSavedPosts, setSelectedPost } from '../features/userDetail/userDetailsSlice';
+import { setSavedPosts, setSelectedPost } from '@/features/userDetail/userDetailsSlice';
 import { FaHeart } from "react-icons/fa";
 import { IoAddSharp } from "react-icons/io5";
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { Button } from './ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { Button } from '../ui/button';
 import { MoreHorizontal } from 'lucide-react';
 
 function PostComment({ open, setOpen }) {

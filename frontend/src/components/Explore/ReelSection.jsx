@@ -2,14 +2,14 @@ import React, { useEffect, useState, useRef } from 'react';
 import { GoBookmark, GoBookmarkFill } from 'react-icons/go';
 import { BsThreeDots } from "react-icons/bs";
 import axios from 'axios';
-import Sidebar from './Sidebar';
-import { Button } from './ui/button';
+import Sidebar from '../Home/Sidebar';
+import { Button } from '../ui/button';
 import { Heart, MessageCircle, Send } from 'lucide-react';
 import { FaHeart } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSavedPosts, setWatchHistory } from '@/features/userDetail/userDetailsSlice';
 import { Link, useNavigate } from 'react-router-dom';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const ReelSection = () => {
     const userDetails = useSelector((state) => state.counter.userDetails);

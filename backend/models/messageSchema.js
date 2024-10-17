@@ -18,6 +18,7 @@ const messageSchema = mongoose.Schema({
     },
     message: {
         type: String,
+        // required: true,
     },
     mediaUrl: {
         type: String,

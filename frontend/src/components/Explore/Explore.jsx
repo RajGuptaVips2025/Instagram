@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import Sidebar from './Sidebar';
+import Sidebar from '../Home/Sidebar';
 import axios from 'axios';
 import { BiSolidMoviePlay } from 'react-icons/bi';
 import { FaHeart } from 'react-icons/fa';
 import { IoChatbubbleSharp } from "react-icons/io5";
-import PostComment from './PostComment';
+import PostComment from '../Home/PostComment';
 import { useDispatch } from 'react-redux';
-import { setSelectedPost } from '../features/userDetail/userDetailsSlice';
+import { setSelectedPost } from '../../features/userDetail/userDetailsSlice';
 import { useNavigate } from 'react-router-dom';
 
 const ExploreGrid = () => {

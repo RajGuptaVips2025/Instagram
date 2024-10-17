@@ -54,7 +54,7 @@ const sendMessage = async (req, res) => {
       const result = await cloudinary.uploader.upload(req.file.path, {
         resource_type: "auto",  // Automatically detects whether it's an image or video
       });
-      console.log('jhjdhjh',result)
+      console.log('jhjdhjh', result)
       mediaUrl = result.secure_url;
     }
 
@@ -239,8 +239,11 @@ const getUserGroups = async (req, res) => {
 const getGroupMessages = async (req, res) => {
   try {
     const groupId = req.params.groupId;
+    console.log(groupId);
 
-    const groupChat = await GroupChat.findById(groupId).populate('messages.senderId', 'username profilePicture');
+    // const groupChat = await GroupChat.findById(groupId).populate('messages.senderId', 'username profilePicture');
+    const groupChat = await GroupChat.findById(groupId).populate('messages.message');
+    console.log(groupChat);
     if (!groupChat) {
       return res.status(404).json({ error: 'Group chat not found' });
     }

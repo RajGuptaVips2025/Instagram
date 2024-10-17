@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Input } from './ui/input';
+import { Input } from '../ui/input';
 
 const CreatePost = () => {
   const userDetails = useSelector((state) => state.counter.userDetails);

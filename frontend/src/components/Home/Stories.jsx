@@ -1,7 +1,7 @@
 // Reels.js
 import { useRef, useState } from 'react';
-import { ScrollArea, ScrollBar } from "./ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const Stories = () => {
 
