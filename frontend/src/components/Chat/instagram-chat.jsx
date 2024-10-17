@@ -13,7 +13,7 @@ import { CiSquarePlus } from "react-icons/ci"
 import { RxHamburgerMenu } from "react-icons/rx"
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import { setFollowingUsers, setMessages, setSuggestedUser } from '../../features/userDetail/userDetailsSlice';
+import {setFollowingUsers, setMessages, setSuggestedUser } from '../../features/userDetail/userDetailsSlice';
 
 export function ChatComponent({ socketRef }) {
   const links = [
@@ -56,9 +56,21 @@ export function ChatComponent({ socketRef }) {
       Array.isArray(messages) ?
         dispatch(setMessages([...messages, newMessage])) : "no"
     });
-    
+
   }
 
+
+  // const getRealTimeMessages = () => {
+  //   socketRef.current.on('newMessage', (newMessage) => {
+  //     Array.isArray(messages) ? dispatch(setMessages([...messages, newMessage])) : "no";
+  //     dispatch(reorderFollowingUsers(newMessage.senderId)); // Reorder following users list on new message
+  //   });
+
+  //   socketRef.current.on('sendGroupMessage', (newMessage) => {
+  //     Array.isArray(messages) ? dispatch(setMessages([...messages, newMessage])) : "no";
+  //     dispatch(reorderFollowingUsers(newMessage.senderId)); // Handle for groups as well
+  //   });
+  // };
 
 
   useEffect(() => {

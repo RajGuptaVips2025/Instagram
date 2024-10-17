@@ -19,16 +19,15 @@ function ChatBox() {
     const [file, setFile] = useState(null); // Store file
     const [filePreview, setFilePreview] = useState(null); // Store preview URL
     const navigate = useNavigate();
+    console.log(suggestedUser);
 
     const sendMessageHandle = async (e, reciverId) => {
         e.preventDefault();
         try {
 
             const senderId = userDetails.id;
-            if (!textMessage && !file) {
-                return;
-            }
-
+            if (!textMessage && !file) return;
+            
             // Create form data to send media
             const formData = new FormData();
             formData.append('senderId', senderId);
@@ -47,10 +46,10 @@ function ChatBox() {
                 });
 
             if (response.data.success) {
-            dispatch(setMessages([...messages, response.data.newMessage]));
-            setTextMessage('');
-            setFile(null);  // Reset file input after sending
-            setFilePreview(null);  // Clear preview after sending
+                dispatch(setMessages([...messages, response.data.newMessage]));
+                setTextMessage('');
+                setFile(null);  // Reset file input after sending
+                setFilePreview(null);  // Clear preview after sending\
             }
         } catch (error) {
             console.log(error.message);
