@@ -60,19 +60,6 @@ export function ChatComponent({ socketRef }) {
   }
 
 
-  // const getRealTimeMessages = () => {
-  //   socketRef.current.on('newMessage', (newMessage) => {
-  //     Array.isArray(messages) ? dispatch(setMessages([...messages, newMessage])) : "no";
-  //     dispatch(reorderFollowingUsers(newMessage.senderId)); // Reorder following users list on new message
-  //   });
-
-  //   socketRef.current.on('sendGroupMessage', (newMessage) => {
-  //     Array.isArray(messages) ? dispatch(setMessages([...messages, newMessage])) : "no";
-  //     dispatch(reorderFollowingUsers(newMessage.senderId)); // Handle for groups as well
-  //   });
-  // };
-
-
   useEffect(() => {
 
     getRealTimeMessages()
@@ -110,7 +97,6 @@ export function ChatComponent({ socketRef }) {
         console.log('User details not available yet.');
         return;  // Exit the function early if userDetails is not set
       }
-      console.log(suggestedUser._id);
       if (suggestedUser && Object.keys(suggestedUser).length > 0) {
         const response = await axios.get(
           suggestedUser && 'groupName' in suggestedUser

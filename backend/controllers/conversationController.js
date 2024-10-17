@@ -5,43 +5,6 @@ const GroupChat = require('../models/groupChatSchema')
 const { getReciverSocketId, io } = require('../socket/socket');
 const cloudinary = require('../config/cloudinary');
 
-// For individual message sending
-// const sendMessage = async (req, res) => {
-//   try {
-//     const reciverId = req.params.id;
-//     const { textMessage: message, senderId } = req.body;
-
-//     let conversation = await Conversation.findOne({
-//       participants: { $all: [senderId, reciverId] }
-//     });
-//     if (!conversation) {
-//       conversation = await Conversation.create({
-//         participants: [senderId, reciverId]
-//       });
-//     }
-
-//     const newMessage = await Message.create({
-//       senderId, reciverId, message
-//     });
-
-//     if (newMessage) {
-//       conversation.messages.push(newMessage._id);
-//     }
-
-//     await Promise.all([conversation.save(), newMessage.save()]);
-
-//     const reciverSocketId = getReciverSocketId(reciverId);
-//     if (reciverSocketId) {
-//       io.to(reciverSocketId).emit('newMessage', newMessage);
-//     }
-
-//     res.status(200).json({ success: true, newMessage });
-//   } catch (error) {
-//     console.log(error.message);
-//     res.status(500).json({ error: 'Server error' });
-//   }
-// };
-
 const sendMessage = async (req, res) => {
   try {
     const { textMessage: message, senderId, messageType } = req.body;
@@ -195,45 +158,6 @@ const getUserGroups = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
-
-
-// Send a message to a group chat
-// const sendGroupMessage = async (req, res) => {
-//   try {
-//     const groupId = req.params.groupId;
-//     const { senderId, textMessage: message, messageType } = req.body;
-
-//     const groupChat = await GroupChat.findById(groupId);
-//     if (!groupChat) {
-//       return res.status(404).json({ error: 'Group chat not found' });
-//     }
-
-//     const newMessage = {
-//       senderId,
-//       message,
-//       messageType
-//     };
-
-//     groupChat.messages.push(newMessage);
-//     groupChat.updatedAt = Date.now();
-
-//     await groupChat.save();
-
-//     // Emit the new message to all group members via socket.io
-//     const members = groupChat.members.map(member => member.userId.toString());
-//     members.forEach(memberId => {
-//       const memberSocketId = getReciverSocketId(memberId);
-//       if (memberSocketId) {
-//         io.to(memberSocketId).emit('sendGroupMessage', newMessage);
-//       }
-//     });
-
-//     res.status(201).json({ success: true, newMessage });
-//   } catch (error) {
-//     console.error(error.message);
-//     res.status(500).json({ error: 'Server error' });
-//   }
-// };
 
 // Get all messages from a group chat
 const getGroupMessages = async (req, res) => {

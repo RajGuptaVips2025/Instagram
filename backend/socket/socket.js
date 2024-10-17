@@ -34,9 +34,25 @@ io.on('connection', (socket) => {
 
   // Handle group message sending
   socket.on('sendGroupMessage', ({ groupId, senderId, message }) => {
-    
+
     // Broadcast message to all users in the group
     io.to(groupId).emit('receiveGroupMessage', { senderId, message, groupId });
+  });
+
+  // Handle typing event
+  socket.on('typing', ({ receiverId }) => {
+    const receiverSocketId = userSocketMap[receiverId];
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('typing', { senderId: userId });
+    }
+  });
+
+  // Handle stopTyping event
+  socket.on('stopTyping', ({ receiverId }) => {
+    const receiverSocketId = userSocketMap[receiverId];
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('stopTyping', { senderId: userId });
+    }
   });
 
   // Handle user disconnection

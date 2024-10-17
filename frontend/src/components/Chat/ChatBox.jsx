@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { setMessages } from '../../features/userDetail/userDetailsSlice';
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { Camera, Heart, Info, Mic, Phone, Smile, Video } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
+import { io } from 'socket.io-client';
 
 function ChatBox() {
 
@@ -15,10 +16,12 @@ function ChatBox() {
     const userDetails = useSelector((state) => state.counter.userDetails);
     const messages = useSelector((state) => state.counter.messages);
     const [textMessage, setTextMessage] = useState('');
-    const dispatch = useDispatch();
     const [file, setFile] = useState(null); // Store file
     const [filePreview, setFilePreview] = useState(null); // Store preview URL
+    const [isTyping, setIsTyping] = useState(false);
     const navigate = useNavigate();
+    const socketRef = useRef();
+    const dispatch = useDispatch();
     console.log(suggestedUser);
 
     const sendMessageHandle = async (e, reciverId) => {
@@ -27,7 +30,7 @@ function ChatBox() {
 
             const senderId = userDetails.id;
             if (!textMessage && !file) return;
-            
+
             // Create form data to send media
             const formData = new FormData();
             formData.append('senderId', senderId);
@@ -57,6 +60,30 @@ function ChatBox() {
         }
     };
 
+    useEffect(() => {
+        socketRef.current = io('http://localhost:5000', {
+            query: { userId: userDetails.id }
+        });
+
+        // Listen for typing event
+        socketRef.current.on('typing', ({ senderId }) => {
+            if (senderId === suggestedUser._id) {
+                setIsTyping(true);
+            }
+        });
+
+        // Listen for stopTyping event
+        socketRef.current.on('stopTyping', ({ senderId }) => {
+            if (senderId === suggestedUser._id) {
+                setIsTyping(false);
+            }
+        });
+
+        return () => {
+            socketRef.current.disconnect();
+        };
+    }, [suggestedUser, userDetails]);
+
     // Handle file selection and create preview
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -65,6 +92,15 @@ function ChatBox() {
         // Create a preview URL for the file
         const previewUrl = URL.createObjectURL(selectedFile);
         setFilePreview(previewUrl);
+    };
+
+    const handleTyping = (e) => {
+        setTextMessage(e.target.value);
+        socketRef.current.emit('typing', { receiverId: suggestedUser._id });
+
+        setTimeout(() => {
+            socketRef.current.emit('stopTyping', { receiverId: suggestedUser._id });
+        }, 3000);
     };
 
     return (
@@ -80,7 +116,10 @@ function ChatBox() {
                             <div>
                                 <Link to={`/profile/${suggestedUser?.username}`}>
                                     <p className="font-semibold text-sm dark:text-white">{suggestedUser?.username}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Active 1h ago</p>
+                                    {/* <p className="text-xs text-gray-500 dark:text-gray-400">Active 1h ago</p> */}
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {isTyping ? 'typing...' : 'Active 1h ago'}
+                                    </p>
                                 </Link>
                             </div>
                         </div>
@@ -149,10 +188,16 @@ function ChatBox() {
                     <div className="p-4">
                         <form onSubmit={(e) => sendMessageHandle(e, suggestedUser._id)} className="flex items-center space-x-4 border-[.2px] border-zinc-800 bg-transparent rounded-full px-4 py-2">
                             <Smile className="h-6 w-6 text-black dark:text-white" />
-                            <input
+                            {/* <input
                                 value={textMessage}
                                 onChange={(e) => setTextMessage(e.target.value)}
                                 className="flex-grow bg-transparent border-none outline-none text-sm dark:text-white"
+                                placeholder="Message..."
+                            /> */}
+                            <input
+                                value={textMessage}
+                                onChange={handleTyping}
+                                className="flex-grow bg-transparent border-none outline-none"
                                 placeholder="Message..."
                             />
 
