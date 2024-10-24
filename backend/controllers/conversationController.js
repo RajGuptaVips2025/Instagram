@@ -111,6 +111,7 @@ const sendMessage = async (req, res) => {
       io.to(receiverSocketId).emit('newMessage', populatedMessage);
     }
 
+    populatedMessage.message = message;
     res.status(200).json({ success: true, newMessage: populatedMessage });
   } catch (error) {
     console.log(error.message);
