@@ -14,6 +14,7 @@ import axios from "axios"
 import Sidebar from "../Home/Sidebar"
 import { addUser } from "@/features/userDetail/userDetailsSlice"
 import { useDispatch } from "react-redux"
+import { ReloadIcon } from "@radix-ui/react-icons"
 
 export function ProfileEdit() {
   const { id } = useParams();
@@ -22,8 +23,9 @@ export function ProfileEdit() {
   const [bio, setBio] = useState('');
   const [profileImage, setProfileImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [isresOk, setIsResOk] = useState(true);
   const navigate = useNavigate();
-  const dispatch=useDispatch()
+  const dispatch = useDispatch()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,7 +38,8 @@ export function ProfileEdit() {
     }
 
     try {
-      const response=await axios.post(`/api/users/edit/${id}`, formData, { withCredentials: true });
+      setIsResOk(false)
+      const response = await axios.post(`/api/users/edit/${id}`, formData, { withCredentials: true });
       console.log(response)
       const profilePic = response?.data?.user?.profilePicture
       dispatch(addUser({
@@ -49,8 +52,10 @@ export function ProfileEdit() {
       navigate(`/profile/${username}`);
     } catch (error) {
       console.error('Error updating profile:', error.message);
-      if (error.response.statusText === "Unauthorized") navigate('/login')
+      if (error.response.statusText === "Unauthorized"||error.response?.status===403) navigate('/login')
 
+    } finally {
+      setIsResOk(true)
     }
   };
 
@@ -148,7 +153,12 @@ export function ProfileEdit() {
                       className="mt-1 dark:bg-transparent dark:text-white dark:border-white"
                     />
                   </div>
-                  <Button className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white">Submit</Button>
+                  {
+                    isresOk ?
+                      <Button className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white">Submit</Button>
+                      :
+                      <Button disabled className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white">  <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> Submit</Button>
+                  }
                 </form>
               </main>
             </div>

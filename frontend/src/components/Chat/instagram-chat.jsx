@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { FaInstagram, FaRegEdit, FaRegHeart } from "react-icons/fa"
-import ChatBox from "./ChatBox"
 import MessagesMember from "./MessagesMember"
 import { Link, useNavigate } from "react-router-dom"
 import { GoHomeFill } from "react-icons/go"
@@ -13,7 +12,8 @@ import { CiSquarePlus } from "react-icons/ci"
 import { RxHamburgerMenu } from "react-icons/rx"
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import {setFollowingUsers, setMessages, setSuggestedUser } from '../../features/userDetail/userDetailsSlice';
+import { setFollowingUsers, setMessages, setSuggestedUser } from '@/features/userDetail/userDetailsSlice';
+import ChatBox from "./ChatBox"
 
 export function ChatComponent({ socketRef }) {
   const links = [
@@ -41,11 +41,10 @@ export function ChatComponent({ socketRef }) {
       return response.data;
     } catch (error) {
       console.error('Error fetching following users:', error);
-      if (error.response.statusText === "Unauthorized") navigate('/login')
+      if (error.response.statusText === "Unauthorized"||error.response?.status===403) navigate('/login')
+
     }
   };
-
-
 
   const getRealTimeMessages = () => {
     socketRef.current.on('newMessage', (newMessage) => {
@@ -56,9 +55,8 @@ export function ChatComponent({ socketRef }) {
       Array.isArray(messages) ?
         dispatch(setMessages([...messages, newMessage])) : "no"
     });
-
+    
   }
-
 
   useEffect(() => {
 
@@ -86,6 +84,17 @@ export function ChatComponent({ socketRef }) {
     if (userDetails?.id) {
       gettAllMessages();
     }
+
+
+    socketRef.current.on('videoCallOffer', async ({ from, offer }) => {
+      // console.log('Received videoCallOffer from:', offer.type);
+      // setCreateOffer(offer);
+      // setForm(from);
+      if (offer.type == 'offer') {
+        // setIsAnswer(true);
+        navigate(`/call/${from}`); // Navigate to the correct call route
+      }
+    });
   }, [userDetails, suggestedUser]);
 
 
@@ -97,13 +106,13 @@ export function ChatComponent({ socketRef }) {
         console.log('User details not available yet.');
         return;  // Exit the function early if userDetails is not set
       }
+
       if (suggestedUser && Object.keys(suggestedUser).length > 0) {
         const response = await axios.get(
           suggestedUser && 'groupName' in suggestedUser
             ? `/api/conversations/group/messages/${suggestedUser?._id}`
             : `/api/conversations/all/messages/${suggestedUser?._id}?senderId=${senderId}`
         );
-        console.log(response.data.messages);
 
         if (response.data.success) {
           dispatch(setMessages(response.data.messages));
@@ -111,7 +120,7 @@ export function ChatComponent({ socketRef }) {
       }
     } catch (error) {
       console.log(error.message);
-      if (error?.response?.statusText === "Unauthorized") navigate('/login')
+      if (error?.response?.statusText === "Unauthorized"||error.response?.status===403) navigate('/login')
 
     }
   };
@@ -158,7 +167,7 @@ export function ChatComponent({ socketRef }) {
         </div>
 
         {/* Main Chat Area */}
-        <ChatBox />
+        <ChatBox socketRef={socketRef}/>
       </div>
     </div>)
   );

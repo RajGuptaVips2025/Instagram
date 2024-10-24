@@ -4,65 +4,83 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFollower, setFollowing } from '../../features/userDetail/userDetailsSlice';
 import Sidebar from '../Home/Sidebar';
-import CreatePost from '../Profile/CreatePost';
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
-import { Button } from "../ui/button"
-import { Card, CardContent } from "../ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
+import CreatePost from './CreatePost';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookmarkIcon, Clapperboard, GridIcon, MessageCircle, SettingsIcon, UserIcon } from "lucide-react"
-import { FaHeart } from 'react-icons/fa';   
+import { FaHeart } from 'react-icons/fa';
 import { InstagramProfileSkeletonComponent } from './instagram-profile-skeleton';
 import { IoChatbubbleSharp } from 'react-icons/io5';
-import PostOpener from './PostOpener';
-
-
+import PostComment from '../Home/PostComment';
 const Profile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { username, reelId } = useParams();
+
   const [user, setUser] = useState(null);
-  const [userID, setUserID] = useState(null)
+  const [userID, setUserID] = useState(null);
   const [posts, setPosts] = useState([]);
   const [postsArr, setPostsArr] = useState([]);
-  const [watched, setWatched] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [profilePicture, setProfilePicture] = useState("")
-  const [followingUserss, setFollowingUserss] = useState();
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [profilePicture, setProfilePicture] = useState("");
+  const [followingUserss, setFollowingUserss] = useState([]);
+  const [selectedMedia, setSelectedMedia] = useState(null); // To track selected media
+  const [isDialogOpen, setIsDialogOpen] = useState(false);  // To handle dialog state
   const userDetails = useSelector((state) => state.counter.userDetails);
   const watchHistory = useSelector((state) => state.counter.watchHistory);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null);
-  console.log(selectedPost)
+console.log(postsArr)
+  const [page, setPage] = useState(0); // Pagination page
+  const [hasMore, setHasMore] = useState(true); // If more posts are available
+  const [loading, setLoading] = useState(false); // Loading state
 
-  // Function to handle post click
-  const handlePostClick = (post) => {
-    setSelectedPost(post);
-    setIsModalOpen(true);
-  };
- 
+  // Fetch user data with pagination
   const fetchUserData = useCallback(async () => {
     try {
-      setIsLoading(true)
-      const { data } = await axios.get(`/api/users/${username}`);
-      setProfilePicture(data?.user?.profilePicture)
-      setUserID(data?.user?._id)
+      setIsLoading(true);
+      const { data } = await axios.get(`/api/users/${username}?page=${page}&limit=10`);
+      console.log(data.posts);
+      setProfilePicture(data?.user?.profilePicture);
+      setUserID(data?.user?._id);
       setUser(data.user);
-      setPosts(data.posts);
-      console.log(data.posts)
-      setPostsArr(data.posts.reverse())
-      setWatched(data?.posts?.filter(post => watchHistory[0].some(reelHistory=>reelHistory?.postId===post?._id)))
+
+      // Append new posts to the existing posts array for pagination
+      setPostsArr((prevPosts) => [...prevPosts, ...data?.posts]);
+
+      // Filter watched posts based on user's watch history
+      setWatched(data?.posts?.filter(post =>
+        watchHistory[0]?.some(reelHistory => reelHistory?.postId === post?._id)
+      ));
+
+      if (data.posts.length === 0 || data.posts.length < 10) {
+        setHasMore(false); // Stop pagination when no more posts
+      }
+      
       if (reelId) {
-        reelPart()
+        reelPart(); // Scroll to the specific reel when reelId is provided
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      if (error?.response?.statusText === "Unauthorized") navigate('/login')
+      if (error?.response?.statusText === "Unauthorized"||error.response?.status===403) navigate('/login');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [username, page, reelId, watchHistory, navigate]);
 
+  // Fetch the following users list
+  const getFollowing = useCallback(async () => {
+    try {
+      const response = await axios.get(`/api/users/${userDetails.id}/following`);
+      const following = response.data.following;
+      dispatch(setFollowing(following));
+      setFollowingUserss(following);
+    } catch (error) {
+      console.error('Error fetching following users:', error);
     }
-    finally {
-      setIsLoading(false)
-    }
-  },[username, reelId, watchHistory, navigate])
+  }, [dispatch, userDetails.id]);
+
 
   const handleLogout = async () => {
     try {
@@ -76,6 +94,15 @@ const Profile = () => {
     }
   };
 
+  const showComments = (e, post) => {
+    e.preventDefault();
+    setSelectedMedia(post);
+    setIsDialogOpen(true);
+    dispatch(setSelectedPost(post));
+  };
+
+
+  // Handle following/unfollowing users
   const handleFollowing = async (e, followingID) => {
     e.preventDefault();
     const userId = userDetails.id;
@@ -86,47 +113,55 @@ const Profile = () => {
       setFollowingUserss(following);
     } catch (error) {
       console.error('Error following/unfollowing the user:', error);
-      if (error.response.statusText === "Unauthorized") navigate('/login')
-
+      if (error.response?.statusText === "Unauthorized"||error.response?.status===403) navigate('/login');
     }
   };
-  const getFollowing = useCallback (async () => {
-    const response = await axios.get(`/api/users/${userDetails.id}/following`)
-    const following = response.data.following
-    dispatch(setFollowing([...following]));
-    setFollowingUserss(following)
-  },[dispatch, userDetails.id])
 
-  const reelPart = () => {
+  // Scroll to the reel part if reelId is provided
+  const reelPart = useCallback(() => {
     const reelElement = document.getElementById(reelId);
     if (reelElement) {
-      reelElement.scrollIntoView({ behavior: 'smooth', block: "center" });
+      reelElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }
+  }, [reelId]);
+
+  // Handle pagination when scrolling
+  const handleScroll = useCallback(() => {
+    if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loading || !hasMore) {
+      return;
+    }
+    setPage((prevPage) => prevPage + 1); // Load more posts
+  }, [loading, hasMore]);
 
   useEffect(() => {
-    fetchUserData();
-    getFollowing()
-  }, [username]);
+    fetchUserData(); // Fetch user data
+    getFollowing();  // Fetch following users
+  }, [fetchUserData, getFollowing]);
+
   useEffect(() => {
     if (reelId && postsArr.length) {
-        reelPart();
+      reelPart(); // Scroll to reel after posts are loaded
     }
-  }, [reelId, postsArr, reelPart]);
+  }, [reelId, postsArr.length, reelPart]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll); // Attach scroll listener for pagination
+    return () => window.removeEventListener('scroll', handleScroll); // Clean up on unmount
+  }, [handleScroll]);
 
   if (!user) return <p>Loading...</p>;
 
-  return (
-  <div className='dark:bg-neutral-950 dark:text-white'>
+  return (<div className='dark:bg-neutral-950 dark:text-white'>
     {/* <Sidebar /> */}
     {isLoading && <InstagramProfileSkeletonComponent />}
+    <PostComment selectedMedia={selectedMedia} isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} />
     <div className="flex min-h-screen">
       <Sidebar />
       <main className="profile min-h-screen flex-grow px-4 sm:px-8 lg:px-[72px] py-[60px] ml-0 lg:ml-[14.5%] dark:bg-neutral-950 dark:text-white">
         <div className="inner-profile w-full h-full">
           <header className="flex flex-col md:flex-row items-center mb-8 gap-16 ml-10">
             <Avatar className="w-32 h-32 md:w-36 md:h-36 mb-4 md:mb-0 md:mr-8">
-              <AvatarImage src={`http://localhost:5000/${profilePicture}`} alt={user.username} className="w-full h-full rounded-full object-top object-cover" />
+              <AvatarImage src={profilePicture} alt={user.username} className="w-full h-full rounded-full object-top object-cover" />
               <AvatarFallback>{user.username}</AvatarFallback>
             </Avatar>
             <div className="text-center md:text-left">
@@ -136,7 +171,10 @@ const Profile = () => {
                   <Link to={`/accounts/edit/${user?._id}`}>
                     <Button variant="secondary" className="mr-2 rounded-lg px-4" size="sm">Edit profile</Button>
                   </Link>
-                  <Button variant="secondary" className="rounded-lg px-4" size="sm">View archive</Button>
+                  <Button variant="secondary" className="rounded-lg px-4 mr-2" size="sm">View archive</Button>
+                  <Link to={`/admindashboard`}>
+                    <Button variant="secondary" className="mr-2 rounded-lg px-4" size="sm">Admin Panel</Button>
+                  </Link>
                   <Button onClick={handleLogout} variant="ghost" size="icon" className="ml-2">
                     <SettingsIcon className="h-6 w-6" />
                   </Button>
@@ -196,18 +234,18 @@ const Profile = () => {
               <TabsContent value="posts" className='w-full h-full'>
                 <div className="grid grid-cols-3 gap-1 mb-20 w-full h-full">
                   {postsArr.map((post) => (
-                    <div key={post._id} className="relative w-full h-72 group cursor-pointer" onClick={() => handlePostClick(post)}>
+                    <div onClick={(e)=>showComments(e,post)} key={post._id} className="relative w-full h-72 group">
                       <Card id={post?.caption} className="rounded-none border-none w-full h-full">
                         <CardContent className="p-0 w-full h-full">
-                          {post?.mediaType === 'image' ? (
+                          {post?.media[0]?.mediaType === 'image' ? (
                             <img
-                              src={`${post.mediaPath}`}
+                              src={`${post?.media[0]?.mediaPath}`}
                               alt={post.caption}
                               className="w-full h-full object-cover object-top"
                             />
                           ) : (
                             <video
-                              src={`${post.mediaPath}`}
+                              src={`${post?.media[0]?.mediaPath}`}
                               className="w-full h-full aspect-square object-cover"
                             />
                           )}
@@ -236,18 +274,18 @@ const Profile = () => {
                 <div className="text-center py-8 text-gray-500">No saved posts yet.</div>
                 <div className="grid grid-cols-3 gap-1 mb-20 w-full h-full">
                   {postsArr.map((post) => (
-                    <div key={post._id} className="relative w-full h-72 group">
+                    <div onClick={(e)=>showComments(e,post)} key={post._id} className="relative w-full h-72 group">
                       <Card id={post?.caption} className="rounded-none border-none w-full h-full">
                         <CardContent className="p-0 w-full h-full">
-                          {post?.mediaType === 'image' ? (
+                          {post?.media[0]?.mediaType === 'image' ? (
                             <img
-                              src={`${post.mediaPath}`}
+                              src={`${post?.media[0]?.mediaPath}`}
                               alt={post.caption}
                               className="w-full h-full object-cover object-top"
                             />
                           ) : (
                             <video
-                              src={`${post.mediaPath}`}
+                              src={`${post?.media[0]?.mediaPath}`}
                               className="w-full h-full aspect-square object-cover"
                             />
                           )}
@@ -277,16 +315,16 @@ const Profile = () => {
               <TabsContent value="watched" className='w-full h-full'>
                 <div className="grid grid-cols-3 gap-1 mb-20 w-full h-full">
                   {watched.map((watch) => (
-                    <Card id={watch?.caption} key={watch._id} className="rounded-none border-none w-full h-72">
+                    <Card onClick={(e)=>showComments(e,post)} id={watch?.caption} key={watch._id} className="rounded-none border-none w-full h-72">
                       <CardContent className="p-0 w-full h-full">
                         {watch?.mediaType === 'image' ?
                           <>
-                            <img src={`http://localhost:5000/${watch?.mediaPath}`} alt={watch?.caption} className="w-full h-full object-cover object-top" />
+                            <img src={watch?.mediaPath} alt={watch?.caption} className="w-full h-full object-cover object-top" />
                           </>
                           :
                           <>
                             <video
-                              src={`http://localhost:5000/${watch?.mediaPath}`}
+                              src={watch?.mediaPath}
                               className="w-full aspect-square object-cover"
                             />
                           </>
@@ -301,13 +339,6 @@ const Profile = () => {
         </div>
       </main>
     </div>
-    {/* PostOpener component for modal */}
-    <PostOpener
-        isModalOpen={isModalOpen}
-        setIsModalOpen={setIsModalOpen}
-        selectedPost={selectedPost}
-        posts={postsArr}
-      />
   </div>
   );
 };

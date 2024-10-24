@@ -11,7 +11,7 @@ const SuggestedUsers = () => {
       <div className="flex items-center mb-6 justify-between">
         <Link to={`/profile/${userDetails.username}`} >
           <Avatar className="w-12 h-12">
-            <AvatarImage src={`http://localhost:5000/${userDetails.profilePic}`} className="object-cover object-top" />
+            <AvatarImage src={userDetails.profilePic} className="object-cover object-top" />
             <AvatarFallback>ME</AvatarFallback>
           </Avatar>
         </Link>

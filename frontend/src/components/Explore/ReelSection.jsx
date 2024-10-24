@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { GoBookmark, GoBookmarkFill } from 'react-icons/go';
 import { BsThreeDots } from "react-icons/bs";
 import axios from 'axios';
@@ -13,102 +13,114 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const ReelSection = () => {
     const userDetails = useSelector((state) => state.counter.userDetails);
-    const [allPosts, setAllPosts] = useState([]);
-    const videoRefs = useRef([]); // Ref array for videos
     const savedPost = useSelector((state) => state.counter.savedPosts);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const dispatch = useDispatch();
+    
+    const [allPosts, setAllPosts] = useState([]);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const videoRefs = useRef([]); // Ref for video elements
+    const watchTimeouts = useRef({}); // Timeouts for tracking watch time
 
-    // Timeouts for tracking how long the user watches each reel
-    const watchTimeouts = useRef({});
-
-    // Fetch posts from API and filter for videos (reels)
-    const fetchPosts = async () => {
+    // Fetch posts with pagination
+    const fetchPosts = useCallback(async () => {
         try {
-            const { data: posts } = await axios.get('/api/posts/getPosts');
+            setLoading(true);
+            const { data: posts } = await axios.get(`/api/posts/getPosts?page=${page}&limit=10`);
             const reels = posts.filter(post => post?.mediaType === 'video');
-            setAllPosts(reels); // Filtered reels only
+
+            setAllPosts((prevPosts) => [...prevPosts, ...reels]);
+            if (posts.length < 10) {
+                setHasMore(false);
+            }
         } catch (error) {
             console.error('Error fetching posts:', error);
-            if (error.response.statusText === "Unauthorized") navigate('/login')
-
-        }
-    };
-
-    const handleLike = async (e, postId) => {
-        e.preventDefault();
-        const userId = userDetails.id;
-
-        try {
-            await axios.put(`/api/posts/${postId}/like`, { userId });
-        } catch (error) {
-            console.error('Error liking the post:', error);
-            if (error.response.statusText === "Unauthorized") navigate('/login')
-
+            if (error.response?.statusText === 'Unauthorized'||error.response?.status===403) navigate('/login');
         } finally {
-            fetchPosts();
+            setLoading(false);
         }
-    };
+    }, [page, navigate]);
 
-    const getSavePosts = async () => {
-        const userId = userDetails.id;
-
+    // Fetch saved posts
+    const getSavePosts = useCallback(async () => {
         try {
+            const userId = userDetails.id;
             const { data: { savedPosts } } = await axios.get(`/api/posts/${userId}/save`);
             dispatch(setSavedPosts(savedPosts));
         } catch (error) {
-            console.error('Error saving the post:', error);
-            if (error.response.statusText === "Unauthorized") navigate('/login')
-
-        } finally {
-            fetchPosts();
+            console.error('Error fetching saved posts:', error);
+            if (error.response?.statusText === 'Unauthorized'||error.response?.status===403) navigate('/login');
         }
-    };
+    }, [dispatch, navigate, userDetails.id]);
 
-    const handleSavePosts = async (e, postId) => {
+    // Optimistically update likes
+    const handleLike = useCallback(async (e, postId) => {
         e.preventDefault();
         const userId = userDetails.id;
-
+      
         try {
-            const { data: { savedPosts } } = await axios.put(`/api/posts/${userId}/save`, { postId });
+          // API request to like the post
+          const { data: updatedPost } = await axios.put(`/api/posts/${postId}/like`, { userId });
+      
+          // Update the post locally in the state
+          setAllPosts((prevPosts) =>
+            prevPosts.map((post) =>
+              post._id === postId ? updatedPost : post
+            )
+          );
+        } catch (error) {
+          console.error('Error liking the post:', error);
+          if (error.response?.statusText === "Unauthorized"||error.response?.status===403) navigate('/login');
+        }
+    }, [navigate, userDetails.id]);
+
+    // Optimistically update saved posts
+    const handleSavePosts = useCallback(async (e, postId) => {
+        e.preventDefault();
+        try {
+            const { data: { savedPosts } } = await axios.put(`/api/posts/${userDetails.id}/save`, { postId });
             dispatch(setSavedPosts(savedPosts));
         } catch (error) {
             console.error('Error saving the post:', error);
-            if (error.response.statusText === "Unauthorized") navigate('/login')
-
-        } finally {
-            fetchPosts();
+            if (error.response?.statusText === 'Unauthorized'||error.response?.status===403) navigate('/login');
         }
-    };
+    }, [dispatch, navigate, userDetails.id]);
 
-    // Track watch time and add to history if watched for at least 5 seconds
-    const handleWatchStart = (postId, videoElement) => {
+    // Watch time tracking
+    const handleWatchStart = useCallback((postId, videoElement) => {
         watchTimeouts.current[postId] = setTimeout(() => {
             addToHistory(postId);
-        }, 3000); // 5 seconds
-
+        }, 5000); // 5 seconds watch time
         videoElement.play();
-    };
+    }, []);
 
-    const handleWatchEnd = (postId, videoElement) => {
+    const handleWatchEnd = useCallback((postId, videoElement) => {
         clearTimeout(watchTimeouts.current[postId]);
         videoElement.pause();
-    };
+    }, []);
 
-    const addToHistory = async (postId) => {
-        const userId = userDetails.id;
-
+    const addToHistory = useCallback(async (postId) => {
         try {
+            const userId = userDetails.id;
             const response = await axios.post(`/api/users/reelHistory/${userId}/${postId}`);
-            const watchHistory = response?.data?.user?.reelHistory
-            dispatch(setWatchHistory([watchHistory]))
+            dispatch(setWatchHistory([response?.data?.user?.reelHistory]));
         } catch (error) {
-            if (error.response.statusText === "Unauthorized") navigate('/login')
-            console.error('Error adding to history:', error.message);
+            console.error('Error adding to history:', error);
+            if (error.response?.statusText === 'Unauthorized'||error.response?.status===403) navigate('/login');
         }
-    };
+    }, [dispatch, navigate, userDetails.id]);
 
-    // Create IntersectionObserver and assign to videos
+    // Infinite scrolling
+    const handleScroll = useCallback(() => {
+        if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loading || !hasMore) {
+            return;
+        }
+        setPage((prevPage) => prevPage + 1);
+    }, [loading, hasMore]);
+
+    // Video intersection observer
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
@@ -123,31 +135,37 @@ const ReelSection = () => {
                     }
                 });
             },
-            { threshold: 0.75 } // Trigger observer when 75% of the video is visible
+            { threshold: 0.75 }
         );
 
-        // Observe each video element
         videoRefs.current.forEach((video) => {
             if (video) observer.observe(video);
         });
 
-        // Cleanup observer on unmount
         return () => {
             videoRefs.current.forEach((video) => {
                 if (video) observer.unobserve(video);
             });
         };
-    }, [allPosts]); // Only run effect when posts are updated
+    }, [allPosts, handleWatchStart, handleWatchEnd]);
 
+    // Initial fetch and pagination setup
     useEffect(() => {
         fetchPosts();
-        getSavePosts();
-    }, []);
+    }, [page, fetchPosts]);
 
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [handleScroll]);
+
+    useEffect(() => {
+        getSavePosts();
+    }, [getSavePosts]);
     return (
         <>
             <Sidebar />
-            <div className="w-[81.2%] flex flex-col items-center p-4 ml-auto dark:bg-neutral-950 dark:text-white">
+            <div className="w-[81.3%] min-h-screen flex flex-col items-center p-4 ml-auto dark:bg-neutral-950 dark:text-white">
                 <div className="w-full flex flex-wrap justify-center gap-4 mt-2">
                     {allPosts?.map((post, index) => (
                         <div
@@ -161,7 +179,7 @@ const ReelSection = () => {
                                         ref={(el) => (videoRefs.current[index] = el)} // Assign ref to each video
                                         muted
                                         data-postid={post._id} // Store postId for reference in intersection observer
-                                        src={`${post.mediaPath}`}
+                                        src={post.mediaPath}
                                         loop
                                         className="object-cover w-full h-full rounded-lg"
                                     />
@@ -169,10 +187,9 @@ const ReelSection = () => {
                                         <div className="flex items-center mb-2">
                                             <Link to={`/profile/${post?.author?.username}/${post.caption}`} className='flex justify-center items-center'>
                                                 <Avatar className="w-8 h-8">
-                                                    <AvatarImage src={`http://localhost:5000/${post?.author?.profilePicture}`} alt={post?.username} className="w-full h-full rounded-full object-top object-cover" />
+                                                    <AvatarImage src={post?.author?.profilePicture} alt={post?.username} className="w-full h-full rounded-full object-top object-cover" />
                                                     <AvatarFallback>{post?.username}</AvatarFallback>
                                                 </Avatar>
-                                                {/* </div> */}
                                                 <span className="ml-2 text-white text-sm ">{post?.author?.username}</span>
                                             </Link>
                                             <Button variant="outline" className="ml-2 py-1 px-4 bg-transparent text-white text-xs">
@@ -197,7 +214,6 @@ const ReelSection = () => {
                                 {/* Like Button */}
                                 <div className="like flex flex-col justify-center items-center">
                                     <button onClick={(e) => handleLike(e, post._id)}>
-                                        {/* <Heart className="w-6 h-6 hover:scale-110 transition-transform" /> */}
                                         {post?.likes?.includes(userDetails.id) ? <FaHeart className="w-6 h-6 text-red-500" /> : <Heart className="w-6 h-6 hover:scale-110 transition-transform" />}
                                     </button>
                                     <p className="text-sm">{post?.likes?.length}</p>
@@ -218,13 +234,11 @@ const ReelSection = () => {
                                 <div className="share flex flex-col justify-center items-center">
                                     <Send className="w-6 h-6 hover:scale-110 transition-transform" />
                                     <p className="text-sm">0</p>
-                                    {/* <p className="text-sm">{post?.likes?.length}</p> */}
                                 </div>
 
                                 {/* Save Button */}
                                 <div className="save flex flex-col justify-center items-center">
                                     <button onClick={(e) => handleSavePosts(e, post._id)}>
-                                        {/* <GoBookmark size={25} className="hover:scale-110 transition-transform" /> */}
                                         {Array.isArray(savedPost) && savedPost.includes(post._id) ? <GoBookmarkFill size={25} className="dark:text-white" /> : <GoBookmark size={25} className="hover:text-zinc-800 dark:hover:text-zinc-500 transition-colors darktext-white duration-100" />}
 
                                     </button>

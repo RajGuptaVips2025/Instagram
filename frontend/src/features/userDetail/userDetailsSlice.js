@@ -6,22 +6,23 @@ const initialState = {
     usrname: null,
     email: null,
     id: null,
-    profilePic: null
+    profilePic:null
   },
   selectedPost: null,
   savedPosts: [],
   following: [],
   followers: [],
   socket: null,
-  onlineUsers: [],
-  followingUsers: [],
-  watchHistory: [],
-  messages: [],
-  suggestedUser: null
+  onlineUsers:[],
+  followingUsers:[],
+  watchHistory:[],
+  messages:[],
+  rtmNotification:[],
+  suggestedUser:null
 };
 
 export const userDetailsSlice = createSlice({
-  name: 'user',
+  name: 'user', 
   initialState,
   reducers: {
     addUser: (state, action) => {
@@ -37,10 +38,10 @@ export const userDetailsSlice = createSlice({
       state.selectedPost = action.payload;
     },
     setSavedPosts: (state, action) => {
-      state.savedPosts = action.payload;
+      state.savedPosts = action.payload; 
     },
     setFollowing: (state, action) => {
-      state.following = action.payload;
+      state.following = action.payload; 
     },
     setFollower: (state, action) => {
       state.followers = action.payload;
@@ -53,7 +54,7 @@ export const userDetailsSlice = createSlice({
     },
     setFollowingUsers: (state, action) => {
       // state.followingUsers = Array.isArray(state.followingUsers)? [...state.followingUsers, ...action.payload]:[ ...action.payload] ;
-      state.followingUsers = action.payload;
+      state.followingUsers = action.payload ;
     },
     setSuggestedUser: (state, action) => {
       state.suggestedUser = action.payload;
@@ -64,8 +65,21 @@ export const userDetailsSlice = createSlice({
     setWatchHistory: (state, action) => {
       state.watchHistory = action.payload;
     },
+    setRtmNotification: (state, action) => {
+      if(action.payload.likeType==='like'){
+        // state.rtmNotification.push(action.payload);
+        state.rtmNotification=Object.values(state.rtmNotification)
+        state.rtmNotification = [...state.rtmNotification, action.payload];
+
+      }else if(action.payload.likeType==='dislike'){
+        
+        state.rtmNotification=Object.values(state.rtmNotification)
+        state.rtmNotification=state.rtmNotification.filter((item)=>item.id!==action.payload.id)
+        
+      }
+    },
   },
 });
 
-export const { addUser, setSelectedPost, setSavedPosts, setFollower, setFollowing, setSocket, setOnlineUsers, setFollowingUsers, setSuggestedUser, setMessages, setWatchHistory } = userDetailsSlice.actions;
+export const { addUser, setSelectedPost, setSavedPosts, setFollower, setFollowing, setSocket,setOnlineUsers,setFollowingUsers,setSuggestedUser, setMessages,setWatchHistory, setRtmNotification } = userDetailsSlice.actions;
 export default userDetailsSlice.reducer;

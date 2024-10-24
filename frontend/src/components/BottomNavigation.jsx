@@ -6,7 +6,7 @@ import { BiSolidMoviePlay } from "react-icons/bi";
 import { CiSquarePlus } from "react-icons/ci"; 
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import myPic from '../assets/myPic.jpeg'
+// import myPic from '../assets/myPic.jpeg'
 
 
 function BottomNavigation() {
@@ -22,7 +22,7 @@ function BottomNavigation() {
             icon: (
                 <img
                     className="w-[24px] h-[24px] rounded-full object-cover"
-                    src={myPic}
+                    src=""
                     alt={userDetails.username}
                 />
             ),

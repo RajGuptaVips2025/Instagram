@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';  // defaults to localStorage for web
-import userDetailsReducer from '../features/userDetail/userDetailsSlice';
+import userDetailReducer from '../features/userDetail/userDetailsSlice';
 import { FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 
 const persistConfig = {
@@ -17,7 +17,7 @@ const persistConfig = {
   deserialize: (state) => JSON.parse(state),
 };
 
-const persistedReducer = persistReducer(persistConfig, userDetailsReducer);
+const persistedReducer = persistReducer(persistConfig, userDetailReducer);
 
 const store = configureStore({
   reducer: {

@@ -1,18 +1,22 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './components/Home/Home';
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useRef } from 'react';
+import { io } from 'socket.io-client';
+import { setOnlineUsers } from './features/userDetail/userDetailsSlice';
 import Profile from './components/Profile/Profile';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import Register from './components/Auth/Register';
 import Login from './components/Auth/Login';
 import BottomNavigation from './components/BottomNavigation';
-import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useRef } from 'react';
-import { io } from 'socket.io-client';
-import { setOnlineUsers } from './features/userDetail/userDetailsSlice';
+import Navbar from './components/Navbar';
+import Home from './components/Home/Home';
 import Explore from './components/Explore/Explore';
 import ReelSection from './components/Explore/ReelSection';
 import { ProfileEdit } from './components/Profile/profile-edit';
 import { ChatComponent } from './components/Chat/instagram-chat';
+import Dashboard from './components/Profile/user-dashboard';
+import { VideoCallProvider } from './hooks/VideoCallContext';
+import VideoCall from './components/Chat/VideoCall';
 
 function App() {
   const userDetails = useSelector((state) => state.counter.userDetails);
@@ -43,17 +47,24 @@ function App() {
   
   return (
     <Router>
+      <Navbar />
+      {/* <VideoCallProvider socketRef={socketRef}> */}
+
       <Routes>
-        <Route path="/" element={<ProtectedRoute><Home/></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute><Home socketRef={socketRef}/></ProtectedRoute>} />
         <Route path="/profile/:username" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
         <Route path="/profile/:username/:reelId" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
         <Route path="/direct/inbox" element={<ProtectedRoute><ChatComponent socketRef={socketRef} /></ProtectedRoute>} />
         <Route path="/explore/" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
         <Route path="/reels/" element={<ProtectedRoute><ReelSection /></ProtectedRoute>} />
+        <Route path="/call/:remoteUserId/" element={<ProtectedRoute><VideoCall  userId={userDetails?.id} socketRef={socketRef} /></ProtectedRoute>} />
         <Route path="/accounts/edit/:id" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+        <Route path="/admindashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>
+      {/* </VideoCallProvider> */}
+
       <BottomNavigation />
     </Router>
   );

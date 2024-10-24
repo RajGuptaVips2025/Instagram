@@ -1,15 +1,14 @@
 const express = require('express');
-const { getUserAndPosts, getFollowing, following, updateProfile, addToReelHistory } = require('../controllers/userController');
+const { getUserAndPosts, getFollowing, following, updateProfile, addToReelHistory, getUserDashboard } = require('../controllers/userController');
 const upload = require('../middlewares/uploadMiddleware');
 const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
 
-router.get('/:username',authMiddleware, getUserAndPosts);
-router.post('/edit/:id', upload.single('media'),authMiddleware, updateProfile);
-router.get('/:id/following',authMiddleware, getFollowing);
-router.put('/:id/following',authMiddleware, following);
-
-// New route for adding a reel to the user's history
-router.post('/reelHistory/:userId/:postId', addToReelHistory);
+router.get('/:username',authMiddleware , getUserAndPosts);
+router.post('/edit/:id',authMiddleware , upload.single('media'), updateProfile);
+router.get('/:id/following',authMiddleware , getFollowing);
+router.get('/dashboard/:username' ,authMiddleware, getUserDashboard);
+router.put('/:id/following',authMiddleware , following);
+router.post('/reelHistory/:userId/:postId',authMiddleware , addToReelHistory);
 
 module.exports = router;

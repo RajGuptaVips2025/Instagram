@@ -3,37 +3,48 @@ const Post = require('../models/postSchema');
 const User = require('../models/userSchema');
 const cloudinary = require('../config/cloudinary'); // Import Cloudinary
 const fs = require('fs'); // To delete files after upload
+const { getReciverSocketId, io } = require('../socket/socket');
+
 
 const createPost = async (req, res) => {
   try {
     const { caption, author } = req.body;
 
-    // Ensure a file is uploaded
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    let result; // Declare result outside the try block
+    const mediaDetails = [];
 
-    try {
-      result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'posts',
-        resource_type: 'auto', // Automatically determine resource type (image, video, etc.)
+    // Loop through each uploaded file and upload to Cloudinary
+    for (let file of req.files) {
+      let result;
+      try {
+        result = await cloudinary.uploader.upload(file.path, {
+          folder: 'posts',
+          resource_type: 'auto',
+        });
+      } catch (error) {
+        console.error('Cloudinary upload failed:', error.message);
+        return res.status(500).json({ error: 'Failed to upload to Cloudinary' });
+      }
+
+      mediaDetails.push({
+        mediaType: file.mimetype.startsWith('image') ? 'image' : 'video',
+        mediaPath: result.secure_url,
+        imageWidth: result.width,
+        imageHeight: result.height,
       });
-      // console.log('Cloudinary upload successful:', result);
-    } catch (error) {
-      console.error('Cloudinary upload failed:', error.message);
-      return res.status(500).json({ error: 'Failed to upload to Cloudinary' });
+
+      // Remove file from server after uploading
+      fs.unlinkSync(file.path);
     }
 
-    // Store the media URL and type in MongoDB
+    // Store post details in MongoDB
     const newPost = new Post({
       caption,
-      mediaType: req.file.mimetype.startsWith('image') ? 'image' : 'video',
-      mediaPath: result.secure_url, // Cloudinary URL from the result object
+      media: mediaDetails, // Save multiple media objects
       author,
-      imageWidth: result.width, // Width from the Cloudinary result
-      imageHeight: result.height, // Height from the Cloudinary result
     });
 
     const user = await User.findById(author);
@@ -45,9 +56,6 @@ const createPost = async (req, res) => {
     await user.save();
     await newPost.save();
 
-    // Remove the file from the server after uploading to Cloudinary
-    fs.unlinkSync(req.file.path);
-
     res.status(201).json({ newPost });
   } catch (error) {
     console.error('Error creating post:', error.message);
@@ -56,29 +64,55 @@ const createPost = async (req, res) => {
 };
 
 
-
 const getAllPosts = async (req, res) => {
+  const page = parseInt(req.query.page) || 0;
+  const limit = parseInt(req.query.limit) || 10;
+  
   try {
-    const posts = await Post.find().populate('author', 'username profilePicture').populate('comments.user', 'username');
+    const posts = await Post.find().skip(page * limit).limit(limit).populate('author', 'username profilePicture').populate('comments.user', 'username');
     res.json(posts);
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 };
 
 
-
 const like = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
+    const user = await User.findById(post.author);
+    const likedUser = await User.findById(req.body.userId);
+    let newObj = {};
     if (!post.likes.includes(req.body.userId)) {
       post.likes.push(req.body.userId);
+      newObj = {
+        likeType: 'like',
+        id:user._id,
+        username: likedUser.username,
+        userPic: user.profilePicture
+      };
     } else {
       post.likes.pull(req.body.userId);
+      newObj = {
+        likeType: 'dislike',
+        id:user._id,
+        username: user.username,
+        userPic: user.profilePicture
+      };
     }
+    
     await post.save();
-    res.json(post);
+    
+    const receiverSocketId = getReciverSocketId(post?.author);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('rtmNotification', newObj);
+    } else {
+      console.log('Receiver not connected to socket');
+    }
+    
+    res.json({ post, newObj });
   } catch (error) {
+    console.error('Error in like route:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -90,7 +124,6 @@ const getComment = async (req, res) => {
       .populate('author', 'username profilePicture')
       .populate('comments.user', 'username profilePicture'); // Include profilePicture
 
-    // console.log(post);
     res.json(post);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
@@ -113,25 +146,10 @@ const savePost = async (req, res) => {
   }
 };
 
-// const getSavedPosts = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.params.id);
-//     res.json(user);
-//   } catch (error) {
-//     res.status(500).json({ error: 'Server error' });
-//   }
-// };
-
-
 const getSavedPosts = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate('savedPosts'); // Populate the saved posts with full details
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json(user.savedPosts); // Return only the saved posts (with full post details)
+    const user = await User.findById(req.params.id);
+    res.json(user);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
