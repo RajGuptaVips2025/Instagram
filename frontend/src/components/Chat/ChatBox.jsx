@@ -11,6 +11,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { Dialog, DialogTrigger, DialogContent, DialogClose } from "../ui/dialog";
 import VideoCall from './VideoCall';
+import GroupDetails from './GroupDetails';
 // import { useVideoCall } from '@/hooks/VideoCallContext';
 
 
@@ -29,6 +30,7 @@ function ChatBox() {
 
     const [selectedMedia, setSelectedMedia] = useState(null); // To track selected media
     const [isDialogOpen, setIsDialogOpen] = useState(false);  // To handle dialog state
+    const [isGroupDetailsOpen, setIsGroupDetailsOpen] = useState(false);
 
     const handleMediaClick = (mediaUrl) => {
         setSelectedMedia(mediaUrl);
@@ -132,7 +134,15 @@ function ChatBox() {
                             <Button onClick={() => navigate(`/call/${suggestedUser?._id}`)} variant="ghost" size="sm" className="text-black dark:text-white">
                                 <Video className="h-7 w-7" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="text-black dark:text-white">
+                            {/* <Button variant="ghost" size="sm" className="text-black dark:text-white">
+                                <Info className="h-6 w-6" />
+                            </Button> */}
+                            <Button
+                                onClick={() => setIsGroupDetailsOpen(true)} // Open group details on Info click
+                                variant="ghost"
+                                size="sm"
+                                className="text-black dark:text-white"
+                            >
                                 <Info className="h-6 w-6" />
                             </Button>
                         </div>
@@ -307,6 +317,7 @@ function ChatBox() {
                     </div>
                 )
             }
+            <GroupDetails isOpen={isGroupDetailsOpen} setIsOpen={setIsGroupDetailsOpen} />
         </>
     )
 }

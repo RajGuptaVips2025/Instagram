@@ -18,6 +18,7 @@ import Dashboard from './components/Profile/user-dashboard';
 import { VideoCallProvider } from './hooks/VideoCallContext';
 import VideoCall from './components/Chat/VideoCall';
 import Notification from './components/Home/Notification';
+import GroupDetails from './components/Chat/GroupDetails';
 
 function App() {
   const userDetails = useSelector((state) => state.counter.userDetails);
@@ -61,7 +62,7 @@ function App() {
         <Route path="/call/:remoteUserId/" element={<ProtectedRoute><VideoCall  userId={userDetails?.id} socketRef={socketRef} /></ProtectedRoute>} />
         <Route path="/accounts/edit/:id" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
         <Route path="/admindashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/notification" element={<ProtectedRoute><Notification /></ProtectedRoute>} />
+        <Route path="/groupdetails" element={<ProtectedRoute><GroupDetails /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>

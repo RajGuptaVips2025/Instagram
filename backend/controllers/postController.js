@@ -117,6 +117,59 @@ const like = async (req, res) => {
   }
 };
 
+// const like = async (req, res) => {
+//   try {
+//     const post = await Post.findById(req.params.id);
+//     const user = await User.findById(post.author);
+//     const likedUser = await User.findById(req.body.userId);
+    
+//     if (!post || !user || !likedUser) {
+//       return res.status(404).json({ error: 'Post or user not found' });
+//     }
+
+//     let newObj = {};
+
+//     // Handle the like or dislike logic
+//     if (!post.likes.includes(req.body.userId)) {
+//       post.likes.push(req.body.userId);
+//       newObj = {
+//         likeType: 'like',
+//         id: user._id,
+//         username: likedUser.username,
+//         userPic: likedUser.profilePicture,
+//       };
+//     } else {
+//       post.likes.pull(req.body.userId);
+//       newObj = {
+//         likeType: 'dislike',
+//         id: user._id,
+//         username: likedUser.username,
+//         userPic: likedUser.profilePicture,
+//       };
+//     }
+
+//     await post.save();
+
+//     // Check if the user liking the post is not the author
+//     // if (post.author.toString() !== req.body.userId) {
+//       const receiverSocketId = getReciverSocketId(post.author);
+//       if (receiverSocketId) {
+//         io.to(receiverSocketId).emit('rtmNotification', newObj);
+//       } else {
+//         console.log('Receiver not connected to socket');
+//       }
+//     // } 
+//     // else {
+//     //   console.log('Author liked their own post, no notification sent.');
+//     // }
+
+//     res.json({ post, newObj });
+//   } catch (error) {
+//     console.error('Error in like route:', error);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// };
+
 
 const getComment = async (req, res) => {
   try {
