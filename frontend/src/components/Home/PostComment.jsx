@@ -202,7 +202,7 @@ function PostComment({ selectedMedia, isDialogOpen, setIsDialogOpen }) {
                                     <div className="flex items-center gap-2">
                                         <Avatar>
                                             <AvatarImage src={PostDetails?.author?.profilePicture} alt={`${PostDetails?.author?.username}'s profile`} />
-                                            <AvatarFallback>{PostDetails?.author?.username[0]}</AvatarFallback>
+                                            <AvatarFallback>{PostDetails?.author?.username}</AvatarFallback>
                                         </Avatar>
                                         <div className="authorDetail">
                                             <p className="text-sm font-semibold">{PostDetails?.author?.username}</p>

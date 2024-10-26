@@ -29,7 +29,7 @@ const getUserAndPosts = async (req, res) => {
 const getFollowing = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
-
+    // console.log(user);
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
@@ -41,6 +41,7 @@ const following = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
     const followingUser = await User.findById(req.body.followingID);
+    
     if (!user.following.includes(req.body.followingID)) {
       user.following.push(req.body.followingID);
     } else {
@@ -125,13 +126,12 @@ const addToReelHistory = async (req, res) => {
 };
 
 
-getUserDashboard = async (req, res) => {
+const getUserDashboard = async (req, res) => {
   try {
     const { username } = req.params;
 
     // Find the user by username
     const user = await User.findOne({ username });
-    // console.log(user);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -148,7 +148,6 @@ getUserDashboard = async (req, res) => {
 
     // Calculate total likes, comments, and views while storing IDs
     reels.forEach(reel => {
-      // console.log(reel)
       if (reel.likes.length > 0) {
         totalLikes.push(reel._id); // Store reel ID if it has likes
       }

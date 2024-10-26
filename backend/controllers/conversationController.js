@@ -106,12 +106,13 @@ const sendMessage = async (req, res) => {
       .populate('senderId', 'username profilePicture')
       .populate('reciverId', 'username profilePicture');
 
+    populatedMessage.message = message;
+
     const receiverSocketId = getReciverSocketId(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit('newMessage', populatedMessage);
     }
 
-    populatedMessage.message = message;
     res.status(200).json({ success: true, newMessage: populatedMessage });
   } catch (error) {
     console.log(error.message);

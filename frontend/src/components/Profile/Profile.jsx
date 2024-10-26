@@ -1,4 +1,4 @@
-import { useState, useEffect,useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -31,7 +31,7 @@ const Profile = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);  // To handle dialog state
   const userDetails = useSelector((state) => state.counter.userDetails);
   const watchHistory = useSelector((state) => state.counter.watchHistory);
-console.log(postsArr)
+  console.log(postsArr)
   const [page, setPage] = useState(0); // Pagination page
   const [hasMore, setHasMore] = useState(true); // If more posts are available
   const [loading, setLoading] = useState(false); // Loading state
@@ -57,13 +57,13 @@ console.log(postsArr)
       if (data.posts.length === 0 || data.posts.length < 10) {
         setHasMore(false); // Stop pagination when no more posts
       }
-      
+
       if (reelId) {
         reelPart(); // Scroll to the specific reel when reelId is provided
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      if (error?.response?.statusText === "Unauthorized"||error.response?.status===403) navigate('/login');
+      if (error?.response?.statusText === "Unauthorized" || error.response?.status === 403) navigate('/login');
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +113,7 @@ console.log(postsArr)
       setFollowingUserss(following);
     } catch (error) {
       console.error('Error following/unfollowing the user:', error);
-      if (error.response?.statusText === "Unauthorized"||error.response?.status===403) navigate('/login');
+      if (error.response?.statusText === "Unauthorized" || error.response?.status === 403) navigate('/login');
     }
   };
 
@@ -234,7 +234,7 @@ console.log(postsArr)
               <TabsContent value="posts" className='w-full h-full'>
                 <div className="grid grid-cols-3 gap-1 mb-20 w-full h-full">
                   {postsArr.map((post) => (
-                    <div onClick={(e)=>showComments(e,post)} key={post._id} className="relative w-full h-72 group">
+                    <div onClick={(e) => showComments(e, post)} key={post._id} className="relative w-full h-72 group">
                       <Card id={post?.caption} className="rounded-none border-none w-full h-full">
                         <CardContent className="p-0 w-full h-full">
                           {post?.media[0]?.mediaType === 'image' ? (
@@ -274,7 +274,7 @@ console.log(postsArr)
                 <div className="text-center py-8 text-gray-500">No saved posts yet.</div>
                 <div className="grid grid-cols-3 gap-1 mb-20 w-full h-full">
                   {postsArr.map((post) => (
-                    <div onClick={(e)=>showComments(e,post)} key={post._id} className="relative w-full h-72 group">
+                    <div onClick={(e) => showComments(e, post)} key={post._id} className="relative w-full h-72 group">
                       <Card id={post?.caption} className="rounded-none border-none w-full h-full">
                         <CardContent className="p-0 w-full h-full">
                           {post?.media[0]?.mediaType === 'image' ? (
@@ -315,7 +315,7 @@ console.log(postsArr)
               <TabsContent value="watched" className='w-full h-full'>
                 <div className="grid grid-cols-3 gap-1 mb-20 w-full h-full">
                   {watched.map((watch) => (
-                    <Card onClick={(e)=>showComments(e,post)} id={watch?.caption} key={watch._id} className="rounded-none border-none w-full h-72">
+                    <Card onClick={(e) => showComments(e, post)} id={watch?.caption} key={watch._id} className="rounded-none border-none w-full h-72">
                       <CardContent className="p-0 w-full h-full">
                         {watch?.mediaType === 'image' ?
                           <>

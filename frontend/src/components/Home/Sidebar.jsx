@@ -8,12 +8,14 @@ import { Button } from '../ui/button';
 import { Compass, Heart, Home, Menu, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
+import profilePic from '../Profile/profilePic.jpeg'
 import Notification from './Notification'; // Import your Notification component
 
 function Sidebar() {
     const userDetails = useSelector((state) => state.counter.userDetails);
     let RTMNotification = useSelector((state) => state.counter.rtmNotification);
     RTMNotification = Object.values(RTMNotification);
+
     const [isNotificationOpen, setIsNotificationOpen] = useState(false); // Control notification panel
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
@@ -102,20 +104,42 @@ function NotificationPanel({ onClose, notifications }) {
             style={{ transition: 'transform 0.3s ease-in-out' }}
         >
             <Button variant="ghost" onClick={onClose} className="mb-4">
-                Close
+                Notifications
             </Button>
-
             <ScrollArea className="h-[calc(100%-50px)]">
                 {notifications && notifications.length > 0 ? (
                     notifications.map((user) => (
                         <div key={user.id} className="flex items-center my-4">
+                            {/* Left Side: Avatar */}
                             <Avatar className="w-12 h-12">
                                 <AvatarImage src={user.userPic} alt={user.username} />
                                 <AvatarFallback>{user.username}</AvatarFallback>
                             </Avatar>
-                            <div className="ml-4">
-                                <Link to={`/profile/${user.username}`} className="font-medium">{user.username}</Link>
-                                <p className="text-sm text-gray-500">Liked your post</p>
+
+                            {/* Content Container */}
+                            <div className="ml-4 flex w-full items-center justify-between">
+                                {/* Right Side: Username and Message */}
+                                <div className="flex items-center">
+                                    <Link
+                                        to={`/profile/${user.username}`}
+                                        className="font-medium mr-2"
+                                    >
+                                        {user.username}
+                                    </Link>
+                                    <p className="text-sm text-gray-500">Liked your post</p>
+                                </div>
+
+                                {/* Image of the post on the left */}
+                                {user.postType === "image" ? <img
+                                    src={user.postPic}
+                                    className="w-10 h-12 object-cover rounded-md"
+                                    alt=""
+                                /> :
+                                    <video src={user.postPic}
+                                        className="w-10 h-12 object-cover rounded-md"
+                                        alt=""></video>
+                                }
+
                             </div>
                         </div>
                     ))
@@ -123,6 +147,7 @@ function NotificationPanel({ onClose, notifications }) {
                     <p className="text-center text-gray-500">No notifications</p>
                 )}
             </ScrollArea>
+
         </div>
     );
 }

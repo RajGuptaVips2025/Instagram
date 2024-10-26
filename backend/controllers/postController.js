@@ -80,6 +80,7 @@ const getAllPosts = async (req, res) => {
 const like = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
+    console.log(post.media[0].mediaType);
     const user = await User.findById(post.author);
     const likedUser = await User.findById(req.body.userId);
     let newObj = {};
@@ -89,7 +90,9 @@ const like = async (req, res) => {
         likeType: 'like',
         id:user._id,
         username: likedUser.username,
-        userPic: user.profilePicture
+        userPic: user.profilePicture,
+        postPic : post.media[0].mediaPath,
+        postType: post.media[0].mediaType
       };
     } else {
       post.likes.pull(req.body.userId);
@@ -97,12 +100,13 @@ const like = async (req, res) => {
         likeType: 'dislike',
         id:user._id,
         username: user.username,
-        userPic: user.profilePicture
+        userPic: user.profilePicture,
+        postPic : post.media[0].mediaPath,
+        postType: post.media[0].mediaType
       };
     }
     
     await post.save();
-    
     const receiverSocketId = getReciverSocketId(post?.author);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit('rtmNotification', newObj);
