@@ -52,6 +52,7 @@ const groupChatSchema = new mongoose.Schema({
       }
     }
   ],
+  iv: { type: String }, 
   createdBy: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 

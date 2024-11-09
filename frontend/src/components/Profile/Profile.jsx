@@ -31,7 +31,6 @@ const Profile = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);  // To handle dialog state
   const userDetails = useSelector((state) => state.counter.userDetails);
   const watchHistory = useSelector((state) => state.counter.watchHistory);
-  console.log(postsArr)
   const [page, setPage] = useState(0); // Pagination page
   const [hasMore, setHasMore] = useState(true); // If more posts are available
   const [loading, setLoading] = useState(false); // Loading state

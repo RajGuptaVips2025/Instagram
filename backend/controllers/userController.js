@@ -1,7 +1,7 @@
 const User = require('../models/userSchema');
 const Post = require('../models/postSchema');
 const cloudinary = require('../config/cloudinary'); // Import Cloudinary
-
+const { getReciverSocketId } = require('../socket/socket');
 
 const getUserAndPosts = async (req, res) => {
   const page = parseInt(req.query.page) || 0; // Default page to 0 if not provided
@@ -41,7 +41,6 @@ const following = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
     const followingUser = await User.findById(req.body.followingID);
-    
     if (!user.following.includes(req.body.followingID)) {
       user.following.push(req.body.followingID);
     } else {
